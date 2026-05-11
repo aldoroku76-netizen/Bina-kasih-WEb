@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dagger Vape - Sistem Kasir</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-svg" onclick="kasir.toggleMgmt()" title="Buka Dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 100" width="38" height="62">
+                    <defs>
+                        <linearGradient id="bladeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#dce8ff;stop-opacity:1"/>
+                            <stop offset="40%" style="stop-color:#7ba8f0;stop-opacity:1"/>
+                            <stop offset="100%" style="stop-color:#2d55c8;stop-opacity:1"/>
+                        </linearGradient>
+                        <linearGradient id="guardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#9bafd8;stop-opacity:1"/>
+                            <stop offset="100%" style="stop-color:#5070b8;stop-opacity:1"/>
+                        </linearGradient>
+                        <linearGradient id="gripGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#c09060;stop-opacity:1"/>
+                            <stop offset="100%" style="stop-color:#7a4f28;stop-opacity:1"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Blade -->
+                    <polygon points="30,2 22,52 30,48 38,52" fill="url(#bladeGrad)"/>
+                    <!-- Blade center fuller -->
+                    <polygon points="30,4 28,50 30,47 32,50" fill="rgba(255,255,255,0.35)"/>
+                    <!-- Crossguard -->
+                    <rect x="10" y="52" width="40" height="7" rx="2" fill="url(#guardGrad)"/>
+                    <!-- Grip left -->
+                    <rect x="22" y="59" width="7" height="22" rx="2" fill="url(#gripGrad)"/>
+                    <!-- Grip right -->
+                    <rect x="31" y="59" width="7" height="22" rx="2" fill="url(#gripGrad)"/>
+                    <!-- Pommel -->
+                    <path d="M20,81 Q20,95 30,95 Q40,95 40,81 Z" fill="url(#gripGrad)"/>
+                    <rect x="20" y="79" width="20" height="4" rx="1" fill="url(#gripGrad)"/>
+                </svg>
+            </div>
+            <div class="logo-text">
+                <h1>DAGGER <span>VAPE</span></h1>
+                <div class="logo-sub">Kasir System</div>
+            </div>
+        </div>
+        <div class="info">
+            <div class="datetime">
+                <div class="jam" id="jam">--:--:--</div>
+                <div class="tanggal" id="tanggal">---- ---- --, ----</div>
+            </div>
+            <div class="sales-today">
+                <i class="fas fa-chart-line"></i>
+                <div>
+                    <div class="label">Penjualan Hari Ini</div>
+                    <div class="amount" id="salesToday">Rp 0</div>
+                </div>
+            </div>
+            <!-- Tombol Buka Keranjang -->
+            <button class="btn-open-cart" id="openCartBtn" onclick="kasir.toggleCart()">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- SEARCH & FILTER -->
+        <div class="search-filter">
+            <input type="text" id="searchInput" placeholder="🔍 Cari produk (nama, brand...)">
+            <button id="refreshBtn" class="btn-refresh">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+
+        <!-- CATEGORY PILLS -->
+        <div class="cat-pills-wrap">
+            <div class="cat-pills" id="catPills">
+                <button class="cat-pill active" data-cat="">
+                    <i class="fas fa-th-large"></i> Semua
+                </button>
+                <button class="cat-pill" data-cat="Pod">
+                    <i class="fas fa-plug"></i> Pod
+                </button>
+                <button class="cat-pill" data-cat="Mod">
+                    <i class="fas fa-microchip"></i> Mod
+                </button>
+                <button class="cat-pill" data-cat="Liquid (Salt/PF)">
+                    <i class="fas fa-flask"></i> Salt/PF
+                </button>
+                <button class="cat-pill" data-cat="Liquid (FB)">
+                    <i class="fas fa-wine-bottle"></i> Freebase
+                </button>
+                <button class="cat-pill" data-cat="Cartridge">
+                    <i class="fas fa-capsules"></i> Cartridge
+                </button>
+                <button class="cat-pill" data-cat="Coil">
+                    <i class="fas fa-ring"></i> Coil
+                </button>
+                <button class="cat-pill" data-cat="Kapas">
+                    <i class="fas fa-cloud"></i> Kapas
+                </button>
+                <button class="cat-pill" data-cat="Aksesoris">
+                    <i class="fas fa-wrench"></i> Aksesoris
+                </button>
+            </div>
+        </div>
+
+        <!-- PRODUCTS GRID -->
+        <div class="products-grid" id="productsGrid">
+            <div class="loading">Loading produk...</div>
+        </div>
+    </div>
+
+
+    <!-- CART SIDEBAR -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3><i class="fas fa-shopping-cart"></i> Keranjang Belanja</h3>
+            <button class="close-cart" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-total">
+            <div class="subtotal">
+                <span>Subtotal:</span>
+                <span id="subtotal">Rp 0</span>
+            </div>
+            <div class="diskon">
+                <span>Diskon:</span>
+                <span id="diskon">Rp 0</span>
+            </div>
+            <div class="total">
+                <span>Total:</span>
+                <span id="total">Rp 0</span>
+            </div>
+        </div>
+        <div class="cart-actions">
+            <button class="btn-clear" id="clearCart">Bersihkan</button>
+            <button class="btn-checkout" id="checkoutBtn">Bayar <i class="fas fa-credit-card"></i></button>
+        </div>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Konfirmasi Pembayaran</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="total-display">
+                    <h4>Total: <span id="modalTotal">Rp 0</span></h4>
+                </div>
+                <div class="payment-method">
+                    <label><input type="radio" name="payment" value="tunai" checked> <i class="fas fa-money-bill-wave"></i> Tunai</label>
+                    <label><input type="radio" name="payment" value="qris"> <i class="fas fa-qrcode"></i> QRIS</label>
+                    <label><input type="radio" name="payment" value="transfer"> <i class="fas fa-university"></i> Transfer Bank</label>
+                </div>
+                <!-- Tunai Section -->
+                <div class="bayar-section" id="bayarSection" style="display:block;">
+                    <label>Jumlah Bayar:</label>
+                    <input type="number" id="jumlahBayar" min="0" step="1000">
+                    <div class="kembali" id="kembali">Kembali: Rp 0</div>
+                </div>
+                <!-- QRIS Section -->
+                <div class="qris-section" id="qrisSection" style="display:none;">
+                    <div class="qris-box">
+                        <div class="qris-header">
+                            <span class="qris-badge">QRIS</span>
+                            <span class="qris-title">Dagger Vape</span>
+                        </div>
+                        <div class="qris-img-wrap">
+                            <img src="qris.png" alt="QR Code QRIS Dagger Vape" class="qris-img" id="qrisImg"
+                                onerror="this.style.display='none';document.getElementById('qrisFallback').style.display='flex'">
+                            <div class="qris-fallback" id="qrisFallback" style="display:none;">
+                                <i class="fas fa-qrcode"></i>
+                                <p>Simpan gambar QR sebagai<br><code>qris.png</code> di folder project</p>
+                            </div>
+                        </div>
+                        <div class="qris-info">
+                            <i class="fas fa-mobile-alt"></i>
+                            Scan QR dengan aplikasi e-wallet / m-banking
+                        </div>
+                        <div class="qris-amount">
+                            Bayar tepat: <strong id="qrisAmount">Rp 0</strong>
+                        </div>
+                        <div class="qris-status">
+                            <span class="qris-dot"></span>
+                            Menunggu konfirmasi pembayaran...
+                        </div>
+                    </div>
+                </div>
+                <!-- Transfer Section -->
+                <div class="transfer-section" id="transferSection" style="display:none;">
+                    <div class="transfer-box">
+                        <i class="fas fa-university transfer-icon"></i>
+                        <div class="transfer-info">
+                            <div class="transfer-label">Transfer ke rekening kasir</div>
+                            <div class="transfer-amount">Nominal: <strong id="transferAmount">Rp 0</strong></div>
+                            <div class="transfer-note">Tunjukkan bukti transfer ke kasir</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelPayment">Batal</button>
+                <button class="btn-confirm" id="confirmPayment">Proses Pembayaran</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MGMT OVERLAY -->
+    <div class="mgmt-overlay" id="mgmtOverlay" onclick="kasir.toggleMgmt()"></div>
+
+    <!-- MANAGEMENT SIDEBAR -->
+    <div class="mgmt-sidebar" id="mgmtSidebar">
+        <div class="mgmt-header">
+            <div class="mgmt-title">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 100" width="18" height="30">
+                    <defs>
+                        <linearGradient id="bG2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#dce8ff"/><stop offset="100%" style="stop-color:#2d55c8"/></linearGradient>
+                        <linearGradient id="gG2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#c09060"/><stop offset="100%" style="stop-color:#7a4f28"/></linearGradient>
+                    </defs>
+                    <polygon points="30,2 22,52 30,48 38,52" fill="url(#bG2)"/>
+                    <rect x="10" y="52" width="40" height="7" rx="2" fill="#5070b8"/>
+                    <rect x="22" y="59" width="7" height="22" rx="2" fill="url(#gG2)"/>
+                    <rect x="31" y="59" width="7" height="22" rx="2" fill="url(#gG2)"/>
+                    <path d="M20,81 Q20,95 30,95 Q40,95 40,81 Z" fill="url(#gG2)"/>
+                </svg>
+                <span>Dashboard</span>
+            </div>
+            <button class="mgmt-close" onclick="kasir.toggleMgmt()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="mgmt-tabs">
+            <button class="mgmt-tab active" data-tab="activity" onclick="kasir.switchTab('activity')">
+                <i class="fas fa-history"></i> Log Aktivitas
+            </button>
+            <button class="mgmt-tab" data-tab="top" onclick="kasir.switchTab('top')">
+                <i class="fas fa-trophy"></i> Top Produk
+            </button>
+            <button class="mgmt-tab" data-tab="prices" onclick="kasir.switchTab('prices')">
+                <i class="fas fa-tag"></i> Edit Harga
+            </button>
+        </div>
+
+        <div class="mgmt-body">
+            <!-- Tab: Log Aktivitas -->
+            <div class="tab-panel active" id="tab-activity">
+                <div class="tab-toolbar">
+                    <span class="tab-info" id="activityCount">0 transaksi</span>
+                    <button class="btn-tab-action success" onclick="kasir.exportToExcel()" style="background:var(--success);color:var(--bg-dark);border:none;padding:0.4rem 0.8rem;border-radius:4px;cursor:pointer;font-weight:600;font-size:0.75rem;display:flex;align-items:center;gap:0.4rem;">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                    <button class="btn-tab-action danger" onclick="kasir.clearActivityLog()">
+                        <i class="fas fa-trash"></i> Hapus Semua
+                    </button>
+                </div>
+                <div id="activityList"><div class="mgmt-empty"><i class="fas fa-history"></i><p>Belum ada transaksi</p></div></div>
+            </div>
+
+            <!-- Tab: Top Produk -->
+            <div class="tab-panel" id="tab-top">
+                <div class="tab-toolbar">
+                    <span class="tab-info">Berdasarkan qty terjual</span>
+                </div>
+                <div id="topList"><div class="mgmt-empty"><i class="fas fa-trophy"></i><p>Belum ada data penjualan</p></div></div>
+            </div>
+
+            <!-- Tab: Edit Harga -->
+            <div class="tab-panel" id="tab-prices">
+                <!-- Category Pills -->
+                <div class="price-cat-wrap">
+                    <div class="price-cat-pills" id="priceCatPills">
+                        <button class="price-cat-pill active" data-pcat="">
+                            <i class="fas fa-th-large"></i> Semua
+                        </button>
+                        <button class="price-cat-pill" data-pcat="Pod">
+                            <i class="fas fa-plug"></i> Pod
+                        </button>
+                        <button class="price-cat-pill" data-pcat="Mod">
+                            <i class="fas fa-microchip"></i> Mod
+                        </button>
+                        <button class="price-cat-pill" data-pcat="Liquid (Salt/PF)">
+                            <i class="fas fa-flask"></i> Salt/PF
+                        </button>
+                        <button class="price-cat-pill" data-pcat="Liquid (FB)">
+                            <i class="fas fa-wine-bottle"></i> Freebase
+                        </button>
+                        <button class="price-cat-pill" data-pcat="Cartridge">
+                            <i class="fas fa-capsules"></i> Cartridge
+                        </button>
+                        <button class="price-cat-pill" data-pcat="Coil">
+                            <i class="fas fa-ring"></i> Coil
+                        </button>
+                        <button class="price-cat-pill" data-pcat="Kapas">
+                            <i class="fas fa-cloud"></i> Kapas
+                        </button>
+                        <button class="price-cat-pill" data-pcat="Aksesoris">
+                            <i class="fas fa-wrench"></i> Aksesoris
+                        </button>
+                    </div>
+                </div>
+                <!-- Search bar (muncul setelah pilih kategori) -->
+                <div class="tab-toolbar" id="priceToolbar" style="display:none;">
+                    <input type="text" id="priceSearch" placeholder="Cari dalam kategori..." oninput="kasir.filterPriceList()">
+                    <button class="btn-tab-action" onclick="kasir.resetAllPrices()">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                </div>
+                <!-- Price list -->
+                <div id="priceList">
+                    <div class="price-pick-hint">
+                        <i class="fas fa-hand-pointer"></i>
+                        <p>Pilih kategori di atas untuk melihat daftar harga</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

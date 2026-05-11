@@ -1,0 +1,12 @@
+vape-kasir/
+├── index.html          # Halaman utama
+├── style.css           # Styling
+├── script.js           # JavaScript
+├── config.php          # Database connection
+├── api/
+│   ├── products.php    # API produk
+│   ├── sales-today.php # Total penjualan hari ini
+│   ├── checkout.php    # Proses checkout
+│   └── add-cart.php    # Tambah ke keranjang
+├── print-struk.php     # Cetak struk
+└── database.sql        # SQL setup
